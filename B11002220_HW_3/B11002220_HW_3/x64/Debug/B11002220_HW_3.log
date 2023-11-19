@@ -1,0 +1,4 @@
+﻿  main.c
+C:\Users\Leo\Documents\NTUST\B11002220_HW_3\B11002220_HW_3\useful.h(73,1): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+C:\Users\Leo\Documents\NTUST\B11002220_HW_3\B11002220_HW_3\main.c(146,14): warning C4013: 'strcspn' undefined; assuming extern returning int
+  B11002220_HW_3.vcxproj -> C:\Users\Leo\Documents\NTUST\B11002220_HW_3\x64\Debug\B11002220_HW_3.exe

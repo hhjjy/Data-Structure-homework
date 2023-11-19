@@ -1,0 +1,688 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{tikz}
+\usepackage{ulem}
+
+\usepackage{xeCJK}
+    \xeCJKsetup{AutoFakeBold=true, AutoFakeSlant=true}
+    \setCJKmainfont{標楷體}
+    \setmainfont{Times New Roman}
+
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mGreen}{rgb}{0.1,0.5,0.1}
+
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+%
+% Various Helper Commands
+%
+
+% Useful for algorithms
+\newcommand{\alg}[1]{\textsc{\bfseries \footnotesize #1}}
+
+% For derivatives
+\newcommand{\deriv}[1]{\frac{\mathrm{d}}{\mathrm{d}x} (#1)}
+
+% For partial derivatives
+\newcommand{\pderiv}[2]{\frac{\partial}{\partial #1} (#2)}
+
+% Integral dx
+\newcommand{\dx}{\mathrm{d}x}
+
+% Alias for the Solution section header
+\newcommand{\solution}{\textbf{\large Solution}}
+
+% Probability commands: Expectation, Variance, Covariance, Bias
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C
+}
+
+%%%% USERFUL FUNCTION
+
+
+\begin{document}
+
+	\begin{titlepage}
+		\centering
+		\vspace*{1cm}
+		\Huge
+		\textbf{Data Structure}
+		
+		\vspace{2cm}
+		\LARGE
+		\textbf{Homework3:}Binary search tree implementation
+		
+		\vspace{2cm}
+		\textbf{Author:} B11002220 CHI-CHUN, LO
+		
+		\vspace{1cm}
+
+
+
+		\textbf{Date: }\today
+		
+		\vfill
+		\vspace{2cm}
+
+    	\includegraphics[width=1\textwidth]{logo.png}
+		
+		
+	\end{titlepage}
+	\pagebreak
+	% 目錄
+	\tableofcontents
+	
+	
+	% Problem page 
+	\pagebreak
+	\section{Problem}	
+	Write a program to process binary search trees. including the following operations
+		\begin{enumerate}
+			\item Insert a sequence of characters into a binary search tree. one character at a time.
+			\item Delete all leaf nodes of the tree built in the previous operation. 
+		\end{enumerate}
+	After each operation. the program prints out all keys in increasing order for the inorder traversal. 
+	\subsection{Definition}
+	簡單來說，這個題目要求我們透過二元搜尋樹完成插入（Insert）和刪除葉子節點（DeleteLeafs）這兩個操作。我們將逐步說明這兩個操作的含義和要求。
+	首先，我們先定義一個二元搜尋樹的結構。二元搜尋樹的每個節點包含儲存自身資料的值，以及左右兩個子節點的指標。
+	在每個操作之後，程序將按照中序遍歷的方式，打印出所有鍵值的递增順序。
+		\begin{lstlisting}[style=Cstyle]
+			typedef struct node* treePointer;
+			typedef struct node
+			{
+				int data;
+				treePointer left;
+				treePointer right;
+			} Node;
+		\end{lstlisting}
+		值得注意的是，二元搜尋樹有以下限制與要求：
+		\begin{itemize}
+			\item 所有左子樹的節點值必須小於父節點的值。
+			\item 所有右子樹的節點值必須大於父節點的值。
+			\item 每個節點的值必須是唯一的，不允許重複值。
+		\end{itemize}
+
+		\vspace{0.6cm}
+      	針對第一個操作，對二元樹(BST)插入節點。我們可以定義一個函數InsertNode，它的輸入是這個結構的root，輸出是root節點，透過遞迴將資料插入到正確位置：
+	     \begin{lstlisting}[style=Cstyle]
+			treePointer insertNode(treePointer root, char data)
+		\end{lstlisting}
+		\vspace{0.6cm}
+
+		針對第二個操作，將二元樹(BST)的葉子(leaf)節點都刪除。我們可以定義一個函數DeleteLeafs，它的輸入是這個結構的root，輸出是root節點，在遞迴的過程中若是發現葉子節點就進行刪除的動作：
+		\begin{lstlisting}[style=Cstyle]
+			treePointer deleteLeaf(treePointer root)
+		\end{lstlisting}
+		 
+
+		根據作業規定，我們將使用一個名為Input.txt的檔案作為輸入文件，Output.txt作為輸出文件檔案。
+		每當Input.txt的輸入一行文字時，就會輸出其inorder排序的結果與刪除子葉節點的結果。
+		我們可以針對整個程式的main.c大致的將整個程式的流程設計好，如下:
+		\begin{lstlisting}[style=Cstyle]
+			int main()
+			{
+				clear_file();
+				// Set input file 
+				FILE* inputFile;
+				if (fopen_s(&inputFile, "Input.txt", "r") != 0)
+				{
+					fprintf(stderr, "Failed to open Input.txt\n");
+					return 1;
+				}
+			
+				// Read each line
+				char line[100];
+				while (fgets(line, sizeof(line), inputFile) != NULL)
+				{
+					line[strcspn(line, "\n")] = '\0'; // delete  \n 
+					treePointer BST = NULL;
+					// Read a char and send it into BST 
+					// first opeation 
+					for (int i = 0; line[i]; i++)
+					{
+						BST = insertNode(BST, line[i]);
+					}
+					inorderTraversal(BST); 
+					printf("\n");
+					// second opeartion 
+					deleteLeaf(BST); 
+					inorderTraversal(BST);
+					printf("\n");
+				}
+				fclose(inputFile);
+				return 0;
+			}
+		\end{lstlisting}
+
+		\subsection{InsertNode}
+		對於\alg{insertNode()}函數，我們會根據數據大小往右或往左遞迴找到合適擺放新資料的位置。另外對於
+		\alg{insertNode()}函數，我們會考慮到當插入的資料已經存在於BST中，則會直接跳過。
+
+		\begin{algorithm}[H]
+			\SetAlgoLined
+			\SetKwInOut{Input}{Input}
+			\SetKwFunction{createNode}{createNode}
+			\SetKwFunction{insertNode}{insertNode}
+			
+			\SetKwProg{Fn}{Function}{:}{}
+			\Fn{\insertNode{root, data}}{
+				\Input{root: treePointer, data: char}
+				\If{root is NULL}{
+					\KwRet \createNode{data}\;
+				}
+				\If{root->data is less than data}{
+					root->right = \insertNode{root->right, data}\;
+				}
+				\If{root->data is greater than data}{
+					root->left = \insertNode{root->left, data}\;
+				}
+				\KwRet root\;
+			}
+			
+			\caption{Insert a node into a binary search tree}
+			\end{algorithm}
+		\subsection{DeleteLeaf}
+		這段程式碼的目的是刪除二元搜尋樹中的葉子節點
+		，透過遞迴地遍歷樹的每個節點，並在遇到葉子節點時將其釋放。這樣可以逐步刪除所有的葉子節點，最終達到刪除目標的效果。
+		\begin{algorithm}[h]
+			\SetAlgoLined
+			\SetKwInOut{Input}{Input}
+			\SetKwFunction{deleteLeaf}{deleteLeaf}
+			
+			\Input{root: treePointer}
+			\KwResult{root after deleting leaf nodes}
+			
+			\SetKwProg{Fn}{Function}{:}{}
+			\Fn{\deleteLeaf{root}}{
+				\If{root is not null}{
+					\If{both root->left and root->right are null}{
+						release current node\;
+						\KwRet null\;
+					}
+					\deleteLeaf{root->left}\;
+					\deleteLeaf{root->right}\;
+				}
+				\KwRet root\;
+			}
+			
+			\caption{Delete leaf nodes in a binary search tree}
+			\end{algorithm}
+		\subsection{inorderTraversal}
+		這段程式碼的目的是對一個二元搜尋樹進行inorder traversal。
+		\begin{algorithm}[h]
+			\SetKwInOut{Input}{Input}
+
+			\Input{root: treePointer}
+			\KwResult{root you gave before}
+
+			\SetAlgoLined
+			\SetKwFunction{inorderTraversal}{inorderTraversal}
+			
+			\SetKwProg{Fn}{Function}{:}{}
+			\Fn{\inorderTraversal{root}}{
+				\If{root is not null}{
+					\inorderTraversal{root->left}\;
+					print root->data\;
+					\inorderTraversal{root->right}\;
+				}
+			}
+			
+			\caption{Inorder traversal of a binary search tree}
+			\end{algorithm}
+
+	\pagebreak
+	% Code
+	\section{Code}	
+		下面是main.c完整的程式碼，我有額外編寫一個常用的
+		\texttt{useful.h}檔案，裡面有許多常用的函式，裡面有重新定義printf的程式
+		，針對不同環境下的C編譯器設定。
+		\subsection{useful.h}
+			\begin{lstlisting}[style=CStyle]
+				#ifndef __useful__
+				#define __useful__
+
+				#include "stdio.h"
+				#include "stdlib.h"
+				#include "time.h"
+
+				/**
+				* @brief Define the filename for the output file.
+				*/
+				#define OUTPUT_FILE "Output.txt"
+
+				#ifdef __PRINTF_TO_FILE__BY_VISUAL_STUDIO
+				/**
+				* @brief Clear the content of the output file.
+				*/
+				#define clear_file() \
+						do { \
+							FILE *file; \
+							if(fopen_s(&file, OUTPUT_FILE, "w") == 0) { \
+								if (file != NULL) { \
+									fprintf(file,""); \
+									fclose(file); \
+								} \
+							} \
+						} while (0)
+
+				/**
+				* @brief Print content to the output file.
+				*/
+				#define printf(...) \
+						do { \
+							FILE *file; \
+							if(fopen_s(&file, OUTPUT_FILE, "a") == 0) { \
+								fprintf(file,__VA_ARGS__); \
+								fclose(file); \
+							} \
+						} while (0)
+
+				#endif
+
+				/**
+				* @brief Standard C fopen
+				*/
+				#ifdef __PRINTF_TO_FILE__
+				/**
+					* @brief Clear the content of the output file.
+					*/
+				#define clear_file() \
+						do { \
+							FILE *file = fopen(OUTPUT_FILE, "w"); \
+							if (file != NULL) { \
+								fclose(file); \
+							} \
+						} while (0)
+
+					/**
+					* @brief Print content to the output file.
+					*/
+				#define printf(...) \
+						do { \
+							FILE *file = fopen(OUTPUT_FILE, "a"); \
+							if (file != NULL) { \
+								fprintf(file, __VA_ARGS__); \
+								fclose(file); \
+							} \
+						} while (0)
+
+				#endif
+
+				#ifndef  __PRINTF_TO_FILE__BY_VISUAL_STUDIO && __PRINTF_TO_FILE__
+					/**
+					* @brief If __PRINTF_TO_FILE__ is not defined, do nothing.
+					*/
+				#define clear_file() \
+						do { \
+						} while (0)
+				#endif
+
+				// Display the entire array
+				#define PRINT_ARR(ARR, SIZE) \
+					do \
+					{ \
+						for (int i = 0; i < SIZE; i++) \
+							printf("%d ", ARR[i]); \
+						printf("\n"); \
+					} while (0)
+
+				// Swap
+				#define SWAP(a, b, t) (t = a, a = b, b = t)
+
+				/**
+				* @brief Compare two numbers. Returns 1 if a > b, 0 if a = b, -1 if a < b.
+				* @param a
+				* @param b
+				*/
+				#define COMPARE(a, b) (a > b ? 1 : (a < b ? -1 : 0))
+
+				// Allocate memory
+				#define MALLOC(arr, size) \
+					do \
+					{ \
+						if (!(arr = malloc(size))) \
+						{ \
+							fprintf(stderr, "Malloc error\n"); \
+							exit(EXIT_FAILURE); \
+						} \
+					} while (0)
+
+				#define REMALLOC(arr, size) \
+					do \
+					{ \
+						if (!(arr = realloc(arr, size))) \
+						{ \
+							fprintf(stderr, "Realloc error\n"); \
+							exit(EXIT_FAILURE); \
+						} \
+					} while (0)
+
+				// Display the execution time of a function (input: void)
+				#define TIME_FUNCTION(func)                                                         \
+					do                                                                              \
+					{                                                                               \
+						clock_t start = clock();                                                    \
+						func();                                                                     \
+						clock_t end = clock();                                                      \
+						double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;            \
+						printf("Function %s takes %f seconds to execute.\n", #func, cpu_time_used); \
+					} while (0)
+
+				#endif
+
+			\end{lstlisting}
+		\subsection{main.c}
+		一開始的定義是為了調用useful.h重新定義好的printf，可以讓printf到檔案中，而不是在螢幕上顯示。
+		\begin{lstlisting}[style=CStyle]
+		/**
+		* @file BST.c
+		* @author Leo (you@domain.com)
+		* @brief HW3 BST
+		* @version 0.1
+		* @date 2023-11-17
+		*
+		* @copyright Copyright (c) 2023
+		*
+		*/
+		#define __PRINTF_TO_FILE__BY_VISUAL_STUDIO
+
+		#include "useful.h"
+		typedef struct node *treePointer;
+		typedef struct node
+		{
+			int data;
+			treePointer left;
+			treePointer right;
+		} Node;
+		treePointer createNode(char data)
+		{
+			treePointer newNode;
+			MALLOC(newNode, sizeof(*newNode));
+			newNode->data = data;
+			newNode->left = NULL;
+			newNode->right = NULL;
+			return newNode;
+		}
+		/**
+		* @brief Delete leaf nodes in a binary tree.
+		* @param root The root node of the binary tree.
+		* @return treePointer The modified root node of the binary tree.  
+		*/
+		treePointer deleteLeaf(treePointer root)
+		{
+			if (root)
+			{
+				if (root->left == NULL && root->right == NULL) // Check if it is a leaf node
+				{
+					free(root);  // Free the memory space of the leaf node
+					return NULL; // Return a null pointer to indicate the deletion of the leaf node
+				}
+				// Recursively delete leaf nodes in the left subtree and right subtree
+				root->left = deleteLeaf(root->left);
+				root->right = deleteLeaf(root->right);
+			}
+			return root; // Return the modified root node of the binary tree
+		}
+
+		/**
+		* @brief Insert a node at the specified position.
+		*
+		* @param root The current node.
+		* @param data The character data to be inserted.
+		* @return treePointer
+		* @note: There are two possible situations that can occur.
+		*          1. Return the address of the new node if the root node is empty!
+		*          2. Return root to pass the previously  address to root->right or root->left.
+		*/
+		treePointer insertNode(treePointer root, char data)
+		{
+			// Handle the case where the current node is empty
+			if (root == NULL)
+			{
+				return createNode(data);
+			}
+			// Search to the right
+			if (root->data < data)
+			{
+				root->right = insertNode(root->right, data);
+			}
+			// Search to the left
+			if (root->data > data)
+			{
+				root->left = insertNode(root->left, data);
+			}
+			// Make sure that right & left store the current root node to connect successfully
+			return root;
+		}
+
+		/**
+		* @brief Search for a node containing the specified data in a binary search tree.
+		* @param root The root node of the binary search tree.
+		* @param data The data to search for.
+		* @return treePointer a pointer to the node containing the search data, or NULL if not found.
+		*/
+		treePointer search(treePointer root, char data)
+		{
+			if (!root || root->data == data) // if current node or data find then return current node   
+				return root;
+			if (root->data < data) // search from right 
+				return search(root->right, data);
+			else // search from left 
+				return search(root->left, data);
+		}
+		/**
+		* @brief Perform an inorder traversal of a binary tree.
+		*
+		* @param root The root node of the binary tree.
+		* @return void
+		*/
+		void inorderTraversal(treePointer root)
+		{
+			if (root != NULL)
+			{
+				inorderTraversal(root->left);
+				printf("%c", root->data);
+				inorderTraversal(root->right);
+			}
+		}
+
+		void printTree(treePointer root, int level)
+		{
+			if (root == NULL)
+			{
+				return;
+			}
+
+			printTree(root->right, level + 1);
+
+			for (int i = 0; i < level; i++)
+			{
+				printf("    ");
+			}
+			printf("%c\n", root->data);
+
+			printTree(root->left, level + 1);
+		}
+		int main()
+		{
+			clear_file();
+			// Set input file 
+			FILE* inputFile;
+			if (fopen_s(&inputFile, "Input.txt", "r") != 0)
+			{
+				fprintf(stderr, "Failed to open Input.txt\n");
+				return 1;
+			}
+
+			// Read each line
+			char line[100];
+			while (fgets(line, sizeof(line), inputFile) != NULL)
+			{
+				line[strcspn(line, "\n")] = '\0'; // delete  \n 
+				treePointer BST = NULL;
+				// Read a char and send it into BST 
+				// first opeation 
+				for (int i = 0; line[i]; i++)
+				{
+					BST = insertNode(BST, line[i]);
+				}
+				inorderTraversal(BST); 
+				printf("\n");
+				// second opeartion 
+				deleteLeaf(BST); 
+				inorderTraversal(BST);
+				printf("\n");
+			}
+			fclose(inputFile);
+			return 0;
+		}
+		\end{lstlisting}
+		
+	\section{Result}
+	在這邊我們會針對不同的例子去測試程式的穩定性、正確性。
+	\begin{itemize}
+		\item \textbf{example1:} 討論輸入順序數字
+		
+		\textbf{Input:}
+		\begin{lstlisting}[style=Cstyle]
+			123
+		\end{lstlisting}
+		\textbf{Output:}
+		\begin{lstlisting}[style=Cstyle]
+			123
+			12				
+		\end{lstlisting}
+		解釋:第一列是插入後以Inorder的順序輸出結果，第二列是刪除葉子節點的輸出結果。
+		\item \textbf{example2:} 討論輸入的節點有兩個葉子節點 \\
+		\textbf{Input:}
+		\begin{lstlisting}[style=Cstyle]
+			213		
+		\end{lstlisting}
+		\textbf{Output:}
+		\begin{lstlisting}[style=Cstyle]
+			123
+			2							
+		\end{lstlisting}
+		解釋:第一列是插入後以Inorder的順序輸出結果，第二列是刪除葉子節點的輸出結果。確實葉子節點1與3都被刪除了。
+
+		
+		\item \textbf{example3:} 重複數字輸入造成是否會輸入到二元搜索樹內?
+		
+		\textbf{Input:}
+		\begin{lstlisting}[style=Cstyle]
+			223311
+		\end{lstlisting}
+		\textbf{Output:}
+		\begin{lstlisting}[style=Cstyle]
+			123
+			2		
+		\end{lstlisting}
+		第一列是插入後以Inorder的順序輸出結果，第二列是刪除葉子節點的輸出結果。可以看出重複的數字會被拋棄掉!
+
+		\item \textbf{example4:} 測試只有輸入一個數字時，刪除葉子節點是否會有問題發生?\\
+		\\
+		如果依照之前設計的程式葉子節點會被刪除，但實際上我們不能把root 節點刪除，程式需要把這個狀態排除，所以下面是我針對root節點被刪除的問題做的修正。
+		\\ \\
+		\textbf{Imporve program:}
+		\begin{lstlisting}[style=Cstyle]
+		/**
+		* @brief Delete leaf nodes in a binary tree.
+		* @param root The root node of the binary tree.
+		* @param level it save the current root's level . 
+		* @return treePointer The modified root node of the binary tree.  
+		*/
+		treePointer deleteLeaf(treePointer root,int level)
+		{
+			if (root)
+			{
+				if (root->left == NULL && root->right == NULL && level!= 0) // Check if it is a leaf node
+				{
+					free(root);  // Free the memory space of the leaf node
+					return NULL; // Return a null pointer to indicate the deletion of the leaf node
+				}
+				// Recursively delete leaf nodes in the left subtree and right subtree
+				root->left = deleteLeaf(root->left,level+1);
+				root->right = deleteLeaf(root->right, level + 1);
+			}
+			return root; // Return the modified root node of the binary tree
+		}
+		
+		\end{lstlisting}
+		\textbf{Input:}
+		\begin{lstlisting}[style=Cstyle]
+			2
+		\end{lstlisting}
+		
+		\textbf{Output:}
+		\begin{lstlisting}[style=Cstyle]
+			2
+			2
+		\end{lstlisting}
+		第一列是插入後以Inorder的順序輸出結果，第二列是刪除葉子節點的輸出結果。
+		這個例子本身是root節點同時也是葉子節點，可以有兩種結果發生，一是把root節點刪除，二是保留root節點。這邊理應把root節點保留避免發生錯誤。這邊是做成不刪除。
+
+		
+
+	\end{itemize}
+	
+	
+	% Discussion and Conclusion
+	\section{Discussion}
+
+	在本節中，我們對二元搜尋樹（Binary Search Tree，BST）的整體輸入和輸出進行了簡要說明。只要當前的葉子節點不是BST樹的根節點，就可以進行刪除葉子節點的操作。在插入過程中，重複的節點會被拋棄，確保BST中不會存儲重複的數字。
+
+	接下來，我們討論了程式的效率，其中 n 表示當前節點的數量。
+
+	\begin{itemize}
+		\item 插入操作的時間複雜度為 $O(\log n)$
+		\item 刪除操作的時間複雜度為 $O(n)$。
+	\end{itemize}
+
+	為了進一步提高效率，我們可以檢測並跳過重複數字的插入。在原始設計中，相同的數字不會被插入，但仍會執行對數時間的運算。我們可以修改程式碼，直接跳過插入操作。
+
+	\begin{lstlisting}[style=Cstyle]
+	// 新增accessed_before偵測是否有使用過這個文字！
+	char accessed_before[256] = {0};
+	for (int i = 0; line[i]; i++) {
+	if (accessed_before[line[i]] == 0) {
+	accessed_before[line[i]]++ ;
+	BST = insertNode(BST, line[i]);
+	} else {
+	continue ;
+	}
+	}
+	\end{lstlisting}
+
+	\section{Conclusion}
+	這次的作業，我花的比較多的時間在重定義的設計上，以及程式碼的優化上。因為之前的作業中常常會用到輸入、輸出的功能，格式
+	和內容都比較固定，所以對於這次的作業，我花了很多時間在研究如何設計出符合作業需求的輸入、輸出格式。
+	\\\\
+	在程式碼的優化方面，我發現了程式碼中重複的節點檢查，以及重複的數字檢查。這些檢查可以被合併，以提高程式效率。這些都是非常有用的技能，在日後的程式開發中會派上用場。
+	
+\end{document}

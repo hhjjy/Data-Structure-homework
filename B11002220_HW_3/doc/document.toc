@@ -1,0 +1,11 @@
+\contentsline {section}{\numberline {1}Problem}{2}{}%
+\contentsline {subsection}{\numberline {1.1}Definition}{2}{}%
+\contentsline {subsection}{\numberline {1.2}InsertNode}{3}{}%
+\contentsline {subsection}{\numberline {1.3}DeleteLeaf}{4}{}%
+\contentsline {subsection}{\numberline {1.4}inorderTraversal}{4}{}%
+\contentsline {section}{\numberline {2}Code}{5}{}%
+\contentsline {subsection}{\numberline {2.1}useful.h}{5}{}%
+\contentsline {subsection}{\numberline {2.2}main.c}{8}{}%
+\contentsline {section}{\numberline {3}Result}{11}{}%
+\contentsline {section}{\numberline {4}Discussion}{13}{}%
+\contentsline {section}{\numberline {5}Conclusion}{13}{}%
